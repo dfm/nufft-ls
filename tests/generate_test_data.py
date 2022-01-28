@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import numpy as np
 from astropy.timeseries.periodograms.lombscargle.implementations.utils import trig_sum
 from astropy.timeseries.periodograms.lombscargle.implementations.fast_impl import (
@@ -12,13 +14,16 @@ t = np.sort(random.uniform(0, 10, N))
 y = random.normal(size=N)
 w = random.uniform(0.5, 2.0, N)
 
+w /= w.sum()  # for now, the C++ code will require normalized w
+f0 = df/2  # f0=0 yields power[0] = nan. let's use f0=df/2, from LombScargle.autofrequency
+
 sin, cos = trig_sum(t, y, df, M, use_fft=False)
 
 power = lombscargle_fast(
     t,
     y,
     1 / np.sqrt(w),
-    0.0,
+    f0,
     df,
     M,
     normalization="standard",
@@ -27,8 +32,9 @@ power = lombscargle_fast(
     use_fft=False,
 )
 
-Sh, Ch = trig_sum(t, w * y, df, M, use_fft=False)
-S2, C2 = trig_sum(t, w, df, M, freq_factor=2, use_fft=False)
+w /= w.sum()
+Sh, Ch = trig_sum(t, w * y, df, M, f0=f0, use_fft=False)
+S2, C2 = trig_sum(t, w, df, M, f0=f0, freq_factor=2, use_fft=False)
 tan_2omega_tau = S2 / C2
 S2w = tan_2omega_tau / np.sqrt(1 + tan_2omega_tau * tan_2omega_tau)
 C2w = 1 / np.sqrt(1 + tan_2omega_tau * tan_2omega_tau)
@@ -51,6 +57,7 @@ with open("data.hpp", "w") as f:
 
 const size_t N = {N};
 const size_t M = {M};
+const double f0 = {f0};
 const double df = {df};
 
 const double input_t[] = {{
@@ -71,7 +78,7 @@ const double trig_sum_cos[] = {{
 }};
 
 const double output_power[] = {{
-    {', '.join(map('{:.16e}'.format, power))}
+    {', '.join(map('{:.16E}'.format, power))}
 }};
 """
     )
