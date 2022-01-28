@@ -14,12 +14,16 @@ inline int sgn(T val) {
 struct baseline {
   template <typename Scalar>
   static void compute(size_t N, const Scalar* t, const Scalar* y, const Scalar* w, size_t M,
-                      const Scalar df, Scalar* power) {
+                      const Scalar f0, const Scalar df, Scalar* power) {
     const Scalar sqrt_half = std::sqrt(Scalar(0.5));
-    const Scalar df0 = 2 * M_PI * df;
+    const Scalar domega = 2 * M_PI * df;
+    const Scalar omega0 = 2 * M_PI * f0;
+
+    // astropy's "standard" normalization
+    const Scalar norm = normalization(N, y, w);
 
     for (size_t m = 0; m < M; ++m) {
-      Scalar omega = m * df0;
+      Scalar omega = m * domega + omega0;
       Scalar Sh = Scalar(0), Ch = Scalar(0);
       Scalar S2 = Scalar(0), C2 = Scalar(0);
       for (size_t n = 0; n < N; ++n) {
@@ -50,9 +54,17 @@ struct baseline {
       Scalar CC = 0.5 * (1 + C2 * C2w + S2 * S2w);
       Scalar SS = 0.5 * (1 - C2 * C2w - S2 * S2w);
 
-      power[m] = YC * YC / CC + YS * YS / SS;
-      std::cout << power[m] << std::endl;
+      power[m] = norm * (YC * YC / CC + YS * YS / SS);
     }
+  }
+
+  template <typename Scalar>
+  static Scalar normalization(size_t N, const Scalar* y, const Scalar* w){
+    Scalar invnorm = Scalar(0);
+    for(size_t n = 0; n < N; ++n){
+      invnorm += w[n] * y[n] * y[n];
+    }
+    return Scalar(1)/invnorm;
   }
 };
 
