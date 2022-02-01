@@ -44,5 +44,3 @@ if(Build_Tests)
   enable_testing()
   add_subdirectory(tests)
 endif()
-
-
