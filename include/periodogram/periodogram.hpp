@@ -27,7 +27,7 @@ struct baseline {
       Scalar omega = m * domega + omega0;
       Scalar Sh = Scalar(0), Ch = Scalar(0);
       Scalar S2 = Scalar(0), C2 = Scalar(0);
-      #pragma omp simd simdlen(16)
+      #pragma omp simd simdlen(64/sizeof(Scalar))
       for (size_t n = 0; n < N; ++n) {
         Scalar wn = w[n];
         Scalar hn = wn * y[n];

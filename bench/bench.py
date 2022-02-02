@@ -11,10 +11,10 @@ _limiter = threadpoolctl.threadpool_limits(1)
 
 rand = np.random.default_rng(43)
 
-N = 355
+N = 3554
 dtype = np.float64
 df = dtype(0.1)
-M = 10**6  # num freq bins
+M = 10**5  # num freq bins
 
 random = np.random.default_rng(5043)
 t = np.sort(random.uniform(0, 10, N).astype(dtype))
@@ -36,11 +36,13 @@ if do_nufft:=True:
     # static void compute(size_t N, const Scalar* t, const Scalar* y, const Scalar* w, size_t M,
     #                       const Scalar f0, const Scalar df, Scalar* power) {
 
-    power = np.empty(M, dtype=y.dtype)
+    power = np.zeros(M, dtype=y.dtype)
 
     nufft_ls_compute(t, y, w, f0, df, power)
 
-    time = timeit.timeit('nufft_ls_compute(t, y, w, f0, df, power)', number=(nloop:=1), globals=globals())
+    time = timeit.timeit('nufft_ls_compute(t, y, w, f0, df, power)',
+                number=(nloop:=1), globals=globals(),
+            )
     print(f'baseline took {time/nloop:.4g} sec')
 
 if do_astropy:=True:
