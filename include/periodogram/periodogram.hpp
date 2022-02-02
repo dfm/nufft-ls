@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include "trig_sum.hpp"
+//#include "trig_sum.hpp"
 
 namespace periodogram {
 
@@ -15,6 +15,7 @@ struct baseline {
   template <typename Scalar>
   static void compute(size_t N, const Scalar* t, const Scalar* y, const Scalar* w, size_t M,
                       const Scalar f0, const Scalar df, Scalar* power) {
+
     const Scalar sqrt_half = std::sqrt(Scalar(0.5));
     const Scalar domega = 2 * M_PI * df;
     const Scalar omega0 = 2 * M_PI * f0;
@@ -26,6 +27,7 @@ struct baseline {
       Scalar omega = m * domega + omega0;
       Scalar Sh = Scalar(0), Ch = Scalar(0);
       Scalar S2 = Scalar(0), C2 = Scalar(0);
+      #pragma omp simd simdlen(64/sizeof(Scalar))
       for (size_t n = 0; n < N; ++n) {
         Scalar wn = w[n];
         Scalar hn = wn * y[n];
