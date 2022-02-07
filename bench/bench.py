@@ -47,7 +47,7 @@ if do_nufft:=True:
     nufft_ls_compute(t, y, w, f0, df, power)
 
     time = timeit.timeit('nufft_ls_compute(t, y, w, f0, df, power)',
-                number=(nloop:=10), globals=globals(),
+                number=(nloop:=3), globals=globals(),
             )
     print(f'baseline took {time/nloop:.4g} sec')
 
