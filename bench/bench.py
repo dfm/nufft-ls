@@ -14,7 +14,7 @@ import threadpoolctl
 DEFAULT_N = 3554
 DEFAULT_M = 10**5
 DEFAULT_DTYPE = 'f8'
-DEFAULT_DF = np.dtype(DEFAULT_DTYPE).type(0.1)
+DEFAULT_DF = np.dtype(DEFAULT_DTYPE).type(1e-4)
 
 def main(N, M, dtype, df=DEFAULT_DF,
             do_baseline=True, do_astropy=True, do_winding=True):
@@ -59,7 +59,7 @@ def main(N, M, dtype, df=DEFAULT_DF,
         all_res['baseline'] = power.copy()
 
         time = timeit.timeit('baseline_compute(t, y, w, f0, df, power)',
-                    number=(nloop:=10), globals=globals() | locals(),
+                    number=(nloop:=20), globals=globals() | locals(),
                 )
         print(f'baseline took {time/nloop:.4g} sec')
 
@@ -74,7 +74,7 @@ def main(N, M, dtype, df=DEFAULT_DF,
         all_res['winding'] = power.copy()
 
         time = timeit.timeit('winding_compute(t, y, w, f0, df, power)',
-                    number=(nloop:=10), globals=globals() | locals(),
+                    number=(nloop:=20), globals=globals() | locals(),
                 )
         print(f'winding baseline took {time/nloop:.4g} sec')
 
