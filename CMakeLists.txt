@@ -6,7 +6,7 @@ message(STATUS "Using CMake version: " ${CMAKE_VERSION})
 # find_package(FFTW REQUIRED COMPONENTS FLOAT_LIB DOUBLE_LIB)
 # link_libraries(${FFTW_FLOAT_LIB} ${FFTW_DOUBLE_LIB})
 
-add_compile_options(-Wall -pedantic -Wextra -Werror -O3 -funroll-loops)
+add_compile_options(-Wall -pedantic -Wextra -Werror -O3 -funroll-loops -Wno-unknown-pragmas)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 
 # set(FINUFFT_INCLUDE_DIRS
