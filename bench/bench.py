@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+'''Benchmark Astropy's LS fast_impl versus a baseline C++ implementation
+'''
 
 import timeit
 
@@ -11,16 +13,20 @@ _limiter = threadpoolctl.threadpool_limits(1)
 
 rand = np.random.default_rng(43)
 
+# The Gowanlock+ paper uses N_t=3554 as their single-object dataset.
+# N_f=10**5 is a typical number of freq bins (we call this M)
 N = 3554
 dtype = np.float64
 df = dtype(0.1)
-M = 10**5  # num freq bins
+M = 10**5
 
+# Generate fake data
 random = np.random.default_rng(5043)
 t = np.sort(random.uniform(0, 10, N).astype(dtype))
 y = random.normal(size=N).astype(dtype)
 dy = random.uniform(0.5, 2.0, N).astype(dtype)
 
+# And some derived quantities
 w = dy**-2.
 w /= w.sum()  # for now, the C++ code will require normalized w
 f0 = dtype(df/2)  # f0=0 yields power[0] = nan. let's use f0=df/2, from LombScargle.autofrequency
@@ -28,20 +34,20 @@ f0 = dtype(df/2)  # f0=0 yields power[0] = nan. let's use f0=df/2, from LombScar
 print(f'Running with {N=}, {M=}, dtype {dtype.__name__}')
 
 if do_nufft:=True:
-    import nufft_ls
-    nufft_ls_compute = {np.float32: nufft_ls.baseline_compute_float,
-                        np.float64: nufft_ls.baseline_compute,
+    import nufft_ls.cpu
+    nufft_ls_compute = {np.float32: nufft_ls.cpu.baseline_compute_float,
+                        np.float64: nufft_ls.cpu.baseline_compute,
                     }[dtype]
 
     # static void compute(size_t N, const Scalar* t, const Scalar* y, const Scalar* w, size_t M,
-    #                       const Scalar f0, const Scalar df, Scalar* power) {
+    #                       const Scalar f0, const Scalar df, Scalar* power);
 
     power = np.zeros(M, dtype=y.dtype)
 
     nufft_ls_compute(t, y, w, f0, df, power)
 
     time = timeit.timeit('nufft_ls_compute(t, y, w, f0, df, power)',
-                number=(nloop:=1), globals=globals(),
+                number=(nloop:=3), globals=globals(),
             )
     print(f'baseline took {time/nloop:.4g} sec')
 

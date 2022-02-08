@@ -29,30 +29,11 @@ namespace periodogram_pybind {
     };
 }
 
-PYBIND11_MODULE(nufft_ls, m) {
-    m.doc() = "nufft_ls module";
+PYBIND11_MODULE(cpu, m) {
+    m.doc() = "nufft_ls.cpu module";
     //m.def("trig_sum_naive_compute", &periodogram::trig_sum_naive::compute<double>, "trig_sum_naive::compute<double>");
     //m.def("trig_sum_naive_compute_float", &periodogram::trig_sum_naive::compute<float>, "trig_sum_naive::compute<float>");
 
     m.def("baseline_compute", &periodogram_pybind::baseline::compute<double>, "periodogram::baseline::compute<double>");
     m.def("baseline_compute_float", &periodogram_pybind::baseline::compute<float>, "periodogram::baseline::compute<float>");
 }
-
-
-/*
-namespace periodogram_pybind {
-    struct baseline {
-        // TODO: do we need to disable forcecast?
-        static void compute(py::array_t<double> t){
-                        auto tunchecked = t.unchecked<1>();
-                        const double* tptr = tunchecked.data(0);
-                    }
-    };
-}
-
-PYBIND11_MODULE(nufft_ls, m) {
-    m.doc() = "nufft_ls module";
-
-    m.def("baseline_compute", &periodogram_pybind::baseline::compute, "periodogram::baseline::compute<double>");
-}
-*/

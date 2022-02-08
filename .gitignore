@@ -31,3 +31,7 @@
 *.out
 *.app
 build
+
+# Python
+*.egg-info/
+*.pyc
