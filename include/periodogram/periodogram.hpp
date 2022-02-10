@@ -71,11 +71,6 @@ struct baseline {
     // astropy's "standard" normalization
     const Scalar norm = normalization(N, y, w);
 
-    Scalar sin = std::sin(omega0);
-    Scalar cos = std::cos(omega0);
-    const Scalar sindelta = std::sin(domega);
-    const Scalar cosdelta = std::cos(domega);
-
     Scalar *sin_omegat = new Scalar[N];
     Scalar *cos_omegat = new Scalar[N];
     Scalar *sin_domegat = new Scalar[N];
@@ -127,7 +122,10 @@ struct baseline {
       power[m] = norm * (YC * YC / CC + YS * YS / SS);
     }
 
-    delete[] sin_omegat, cos_omegat, sin_domegat, cos_domegat;
+    delete[] sin_omegat;
+    delete[] cos_omegat;
+    delete[] sin_domegat;
+    delete[] cos_domegat;
   }
 
   template <typename Scalar>

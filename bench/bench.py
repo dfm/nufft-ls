@@ -59,7 +59,7 @@ def main(N, M, dtype, df=DEFAULT_DF,
         all_res['baseline'] = power.copy()
 
         time = timeit.timeit('baseline_compute(t, y, w, f0, df, power)',
-                    number=(nloop:=20), globals=globals() | locals(),
+                    number=(nloop:=5), globals=globals() | locals(),
                 )
         print(f'baseline took {time/nloop:.4g} sec')
 
