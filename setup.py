@@ -6,7 +6,7 @@ from pybind11.setup_helpers import Pybind11Extension, build_ext, MACOS, WIN, has
 
 
 ext_modules = intree_extensions(["src/nufft_ls/cpu.cpp"])
-ext_modules[0].include_dirs = ['include/']
+ext_modules[0].include_dirs += ['include/']
 ext_modules[0].language = 'c++'
 
 class custom_build_ext(build_ext):
