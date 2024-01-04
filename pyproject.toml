@@ -1,3 +1,40 @@
 [build-system]
-requires = ["setuptools>=42", "wheel", "pybind11~=2.9"]
-build-backend = "setuptools.build_meta"
+requires = ["pybind11>=2.9", "scikit-build-core>=0.5"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "nufft-ls"
+description = "Benchmarking different NUFFT/Lomb-Scargle implementations"
+readme = "README.md"
+authors = [{ name = "Dan Foreman-Mackey", email = "foreman.mackey@gmail.com" },
+           { name = "Lehman Garrison"},
+           ]
+requires-python = ">=3.8"
+license = { file = "LICENSE" }
+urls = { Homepage = "https://github.com/dfm/nufft-ls" }
+dependencies = ["numpy", "astropy", "threadpoolctl"]
+dynamic = ["version"]
+
+[tool.scikit-build]
+metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
+sdist.include = ["src/nufft_ls/nufft_ls_version.py"]
+wheel.install-dir = "nufft_ls"
+minimum-version = "0.5"
+build-dir = "build/{wheel_tag}"
+
+# For debugging:
+# cmake.build-type = "Debug"
+# cmake.verbose = true
+# install.strip = false
+
+[tool.setuptools_scm]
+version_file = "src/nufft_ls/nufft_ls_version.py"
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+exclude = []
+
+[tool.ruff.isort]
+known-first-party = ["nufft_ls"]
+combine-as-imports = true
