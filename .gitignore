@@ -35,3 +35,5 @@ build
 # Python
 *.egg-info/
 *.pyc
+
+/src/nufft_ls/nufft_ls_version.py
