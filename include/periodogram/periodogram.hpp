@@ -102,7 +102,8 @@ struct baseline {
         S2 += 2 * wn * sin * cos;
         C2 += wn * (cos * cos - sin * sin);
 
-        // update sin/cos for omega + domega
+        // sin(x + dx) = sin(x) cos(dx) + cos(x) sin(dx)
+        // cos(x + dx) = cos(x) cos(dx) - sin(x) sin(dx)
         sin_omegat[n] = sin_omegat[n] * cos_domegat[n] + cos_omegat[n] * sin_domegat[n];
         cos_omegat[n] = cos_omegat[n] * cos_domegat[n] - sin * sin_domegat[n];
       }
