@@ -12,12 +12,16 @@ import threadpoolctl
 # The Gowanlock+ paper uses N_t=3554 as their single-object dataset.
 # N_f=10**5 is a typical number of freq bins (we call this M)
 DEFAULT_N = 3554
-DEFAULT_M = 10**5
+DEFAULT_M = 10**4
 DEFAULT_DTYPE = 'f8'
 DEFAULT_DF = np.dtype(DEFAULT_DTYPE).type(1e-4)
 
 def main(N, M, dtype, df=DEFAULT_DF,
-            do_baseline=True, do_astropy=True, do_winding=True):
+            do_baseline=False,
+            do_astropy=False,
+            do_winding=True,
+            do_cuda=True,
+            ):
     # process args
     dtype = np.dtype(dtype).type
     df = dtype(df)
@@ -40,15 +44,37 @@ def main(N, M, dtype, df=DEFAULT_DF,
 
     print(f'Running with {N=}, {M=}, dtype {dtype.__name__}')
 
-    if do_baseline or do_winding:
-        import nufft_ls.cpu
-
     all_res = {}
 
+    if do_cuda:
+        import nufft_ls.cuda
+        import cupy as cp
+
+        cuda_compute = {np.float32: nufft_ls.cuda.cu_compute_float,
+                        np.float64: nufft_ls.cuda.cu_compute,
+                        }[dtype]
+        d_t = cp.asarray(t)
+        d_y = cp.asarray(y)
+        d_w = cp.asarray(w)
+        d_power = cp.full(M, 1234., dtype=dtype)
+
+        cuda_compute(d_t.data.ptr, d_y.data.ptr, d_w.data.ptr, len(d_t),
+                     f0, df,
+                     d_power.data.ptr, len(d_power),
+                     )
+        all_res['cuda'] = d_power.get()
+
+        time = timeit.timeit('cuda_compute(d_t.data.ptr, d_y.data.ptr, d_w.data.ptr, len(d_t), f0, df, d_power.data.ptr, len(d_power))',
+                    number=(nloop:=200), globals=globals() | locals(),
+                )
+        print(f'cuda took {time/nloop:.4g} sec')
+
     if do_baseline:
+        import nufft_ls.cpu
+
         baseline_compute = {np.float32: nufft_ls.cpu.baseline_compute_float,
                             np.float64: nufft_ls.cpu.baseline_compute,
-                        }[dtype]
+                            }[dtype]
 
         # static void compute(size_t N, const Scalar* t, const Scalar* y, const Scalar* w, size_t M,
         #                       const Scalar f0, const Scalar df, Scalar* power);
@@ -64,9 +90,11 @@ def main(N, M, dtype, df=DEFAULT_DF,
         print(f'baseline took {time/nloop:.4g} sec')
 
     if do_winding:
+        import nufft_ls.cpu
+
         winding_compute = {np.float32: nufft_ls.cpu.baseline_compute_winding_float,
-                                np.float64: nufft_ls.cpu.baseline_compute_winding,
-                            }[dtype]
+                           np.float64: nufft_ls.cpu.baseline_compute_winding,
+                           }[dtype]
 
         power = np.zeros(M, dtype=y.dtype)
 
@@ -92,9 +120,11 @@ def main(N, M, dtype, df=DEFAULT_DF,
     
 def compare(all_res, dtype):
     if dtype == np.float32:
-        isclose = lambda *args: np.isclose(*args, rtol=1e-4, atol=1e-7)
+        def isclose(*args):
+            return np.isclose(*args, rtol=0.0001, atol=1e-07)
     else:
-        isclose = lambda *args: np.isclose(*args)
+        def isclose(*args):
+            return np.isclose(*args)
 
     # currently these don't match exactly in float32, even with the relaxed tolerance
     for k,j in zip(all_res, list(all_res.keys())[1:]):
