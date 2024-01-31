@@ -7,7 +7,7 @@ name = "nufft-ls"
 description = "Benchmarking different NUFFT/Lomb-Scargle implementations"
 readme = "README.md"
 authors = [{ name = "Dan Foreman-Mackey", email = "foreman.mackey@gmail.com" },
-           { name = "Lehman Garrison"},
+           { name = "Lehman Garrison" },
            ]
 requires-python = ">=3.8"
 license = { file = "LICENSE" }
@@ -24,8 +24,9 @@ build-dir = "build/{wheel_tag}"
 
 # For debugging:
 # cmake.build-type = "Debug"
-# cmake.verbose = true
-# install.strip = false
+cmake.verbose = true
+install.strip = false
+editable.rebuild = true  # use with --no-build-isolation
 
 [tool.setuptools_scm]
 version_file = "src/nufft_ls/nufft_ls_version.py"

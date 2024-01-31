@@ -1,13 +1,13 @@
-module load cmake/3
-module load intel-oneapi-compilers/2022.0.1
-module load python/3.9
+ml modules/2.3-alpha1
+ml cmake
+ml intel-oneapi-compilers
+ml python
+ml cuda/12
+ml gdb
+
+export CMAKE_ARGS="-DCMAKE_CUDA_ARCHITECTURES=75"
 
 . venv/bin/activate
 
-export CC=icc
-export CXX=icc
-
-# only required for 'python setup.py develop'
-# because `pip install -e .` doesn't seem to use these vars...?
-export LDSHARED="$CC -L$(python3-config --prefix)/lib -shared"
-export LDCXXSHARED="$CXX -L$(python3-config --prefix)/lib -shared"
+export CC=icx
+export CXX=icpx
