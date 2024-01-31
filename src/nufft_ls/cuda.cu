@@ -21,11 +21,7 @@ namespace cu_periodogram_pybind {
         const Scalar* d_t = reinterpret_cast<const Scalar*>(t);
         const Scalar* d_y = reinterpret_cast<const Scalar*>(y);
         const Scalar* d_w = reinterpret_cast<const Scalar*>(w);
-        // const Scalar* d_t = t.cast<Scalar*>();
-        // const Scalar* d_y = y.cast<Scalar*>();
-        // const Scalar* d_w = w.cast<Scalar*>();
         Scalar* d_power = reinterpret_cast<Scalar*>(power);
-        // Scalar* d_power = power.cast<Scalar*>();
 
         cu_periodogram::compute<Scalar>(d_t, d_y, d_w, N, f0, df, d_power, M);
     }
