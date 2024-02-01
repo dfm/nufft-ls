@@ -19,8 +19,11 @@ DEFAULT_DTYPE = 'f8'
 DEFAULT_METHODS = ['cufinufft', 'finufft', 'astropy_fft']
 DEFAULT_NTHREAD = len(os.sched_getaffinity(0))  # only for finufft_par currently
 
+FFTW_MEASURE = 0
+FFTW_ESTIMATE = 64
+
 # @profile
-def do_finufft(t, y, dy, f0, df, Nf, eps='default', nthreads=1):
+def do_finufft(t, y, dy, f0, df, Nf, eps='default', nthreads=1, upsampfac=1.25, fftw=FFTW_MEASURE):
     if f0 != 0:
         raise NotImplementedError('f0 != 0 not yet implemented')
 
@@ -38,17 +41,19 @@ def do_finufft(t, y, dy, f0, df, Nf, eps='default', nthreads=1):
         if y.dtype == np.float32:
             eps = 1e-6
         else:
-            eps = 1e-15
+            eps = 1e-9
 
     cdtype = np.complex128 if y.dtype == np.float64 else np.complex64
 
     w = dy**-2.
     w /= w.sum()
-    # FINUFFT has fixed frequency spacing, so rescale the input signal
-    # to achieve the desired df
-    # TODO: not working yet
+    
+    # TODO: f0 != 0 not working yet
     # phase_shift1 = np.exp(1j * f0 * t)
     # phase_shift2 = np.exp(1j * f0 * 2 * t)
+
+    # FINUFFT has fixed frequency spacing, so rescale the input signal
+    # to achieve the desired df
     t = 2 * np.pi * df * t
     t2 = 2 * t
     
@@ -66,7 +71,16 @@ def do_finufft(t, y, dy, f0, df, Nf, eps='default', nthreads=1):
 
     # Not really any opportunity for batch mode here.
     # Different objects generally have different NU points.
-    plan = finufft.Plan(nufft_type=1, n_modes_or_dim=(Nf,), n_trans=1, eps=eps, dtype=cdtype, nthreads=nthreads)
+    plan = finufft.Plan(nufft_type=1,
+                        n_modes_or_dim=(Nf,),
+                        n_trans=1,
+                        eps=eps,
+                        dtype=cdtype,
+                        nthreads=nthreads,
+                        # debug=2,
+                        upsampfac=upsampfac,
+                        fftw=fftw,
+                        )
     plan.setpts(t)
     f1 = plan.execute(yw)
 
@@ -270,8 +284,9 @@ def bench(N, logNfmin, logNfmax, logNfdelta, dtype,
     # t = np.sort(random.uniform(0, 1, N).astype(dtype))
     t = np.sort(random.uniform(0, 2 * np.pi, N).astype(dtype))
     t[0] = 0.
-    y = random.normal(size=N).astype(dtype)
-    dy = random.uniform(0.5, 2.0, N).astype(dtype)
+    # y = random.normal(size=N).astype(dtype)
+    y = np.sin(t*20)
+    dy = random.normal(size=N).astype(dtype)
 
     # f0 = dtype(df/2)  # f0=0 yields power[0] = nan. let's use f0=df/2, from LombScargle.autofrequency
     f0 = dtype(0.)
@@ -370,8 +385,8 @@ def compare_cmd(N, logNf, dtype, df, methods):
     random = np.random.default_rng(5043)
     t = np.sort(random.uniform(0, 2 * np.pi, N).astype(dtype))
     t[0] = 0.
-    y = random.normal(size=N).astype(dtype)
-    dy = random.uniform(0.5, 2.0, N).astype(dtype)
+    y = np.sin(t*20)
+    dy = random.normal(size=N).astype(dtype)
     f0 = dtype(0.)
 
     t.setflags(write=False)
@@ -401,7 +416,7 @@ def compare(all_res, plot=True):
     else:
         def isclose(*args):
             return np.isclose(*args)
-        
+
     # currently these don't match exactly in float32, even with the relaxed tolerance
     for k,j in zip(all_res, list(all_res.keys())[1:]):
         p1, p2 = all_res[k], all_res[j]
